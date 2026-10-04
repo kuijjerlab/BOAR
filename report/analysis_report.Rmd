@@ -1,0 +1,122 @@
+---
+title: "Analysis Report"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+params:
+  results_dir: NULL
+  dataset: NULL
+  cancer_types: NULL
+  modalities: NULL
+  feature_methods: NULL
+  clustering_methods: NULL
+  best_fs: NULL
+  best_cm: NULL
+  seed: NULL
+  cores: NULL
+  run_time: NULL
+---
+
+<style>
+h2 {
+  font-size: 18px;
+  font-weight: bold;
+  margin-top: 28px;
+  margin-bottom: 14px;
+}
+</style>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+
+results_dir <- params$results_dir
+
+include_figure <- function(path) {
+  if (file.exists(path)) knitr::include_graphics(path)
+}
+
+read_table <- function(path) {
+  if (!file.exists(path)) return(NULL)
+  utils::read.csv(path, stringsAsFactors = FALSE, check.names = FALSE)
+}
+```
+
+## Summary
+
+**Dataset:** `r params$dataset`  
+**Cancer types:** `r paste(params$cancer_types, collapse = ", ")`  
+**Modalities:** `r paste(params$modalities, collapse = ", ")`  
+**Feature-selection methods:** `r paste(params$feature_methods, collapse = ", ")`  
+**Clustering methods:** `r paste(params$clustering_methods, collapse = ", ")`  
+**Selected feature-selection method:** `r params$best_fs`  
+**Selected clustering method:** `r params$best_cm`
+
+## Clustering performance
+
+```{r}
+include_figure(file.path(results_dir, "figures", "clustering_summary.png"))
+```
+
+## Ranking of combinations
+
+```{r}
+ranked <- read_table(file.path(results_dir, "summary", "ranked_clustering_combinations.csv"))
+
+if (!is.null(ranked)) {
+  knitr::kable(ranked)
+}
+```
+
+## Metrics of best combination
+
+```{r}
+include_figure(file.path(results_dir, "figures", "best_combination_metrics.png"))
+```
+
+## Selected number of clusters
+
+```{r}
+include_figure(file.path(results_dir, "figures", "best_k.png"))
+```
+
+## Cluster sizes
+
+```{r}
+cluster_size_files <- list.files(
+  file.path(results_dir, "figures"),
+  pattern = "cluster.*size.*\\.png$",
+  full.names = TRUE,
+  ignore.case = TRUE
+)
+
+if (length(cluster_size_files) > 0) {
+  include_figure(cluster_size_files[1])
+}
+```
+
+## ARI
+
+```{r}
+include_figure(file.path(results_dir, "figures", "ARI.png"))
+```
+
+## Clinical associations
+
+```{r}
+include_figure(file.path(results_dir, "figures", "clinical_associations.png"))
+```
+
+## Survival analysis
+
+```{r}
+include_figure(file.path(results_dir, "figures", "survival_summary.png"))
+```
+
+## Output files
+
+The complete output files for this analysis are available in:
+
+`r results_dir`
+
+Detailed `cola` reports are stored under the `reports/` directory.

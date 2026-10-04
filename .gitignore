@@ -1,0 +1,29 @@
+# targets cache
+_targets/
+
+# R / RStudio local files
+.Rhistory
+.RData
+.Ruserdata
+.Rproj.user/
+
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Editor temporary files
+*.swp
+*.swo
+*~
+
+# renv local package library
+renv/library/
+renv/staging/
+renv/python/
+
+# Generated analysis outputs
+results_*/
+results/
+
+# Temporary file listings
+file_structure.txt
