@@ -28,11 +28,15 @@ The project uses `renv` to record package versions and reproduce the software en
 
 After cloning the repository, install `renv` if necessary:
 
+```r
 install.packages("renv")
+```
 
 Then restore the project environment:
 
+```r
 renv::restore()
+```
 
 This installs the package versions recorded in `renv.lock`.
 
@@ -107,18 +111,18 @@ Consensus clustering is performed using combinations of feature-selection and cl
 
 The current workflow supports the following feature-selection methods:
 
-SD
-CV
-MAD
-ATC
+* SD
+* CV
+* MAD
+* ATC
 
 and clustering methods:
 
-kmeans
-skmeans
-hclust
-mclust
-pam
+* kmeans
+* skmeans
+* hclust
+* mclust
+* pam
 
 Clustering performance is summarized using 1-PAC, mean silhouette and concordance.
 
@@ -148,9 +152,11 @@ Clinical data are deliberately kept separate from the core clustering functions 
 
 Each clinical file must contain at least the following three columns:
 
+```text
 sample_id
 survival_time
 survival_event
+```
 
 where:
 
@@ -160,9 +166,11 @@ where:
 
 Additional clinical variables can be included in the same file and are used for downstream association testing. For example:
 
-sample_id    survival_time    survival_event    age    stage       sex
-TCGA-XX-0001 1240             0                 63     Stage II    female
-TCGA-XX-0002 561              1                 71     Stage III   male
+```text
+sample_id       survival_time    survival_event    age    stage        sex
+TCGA-XX-0001    1240             0                 63     Stage II     female
+TCGA-XX-0002    561              1                 71     Stage III    male
+```
 
 The standardized identifier and survival columns are not included in the clinical association tests.
 
@@ -170,33 +178,35 @@ The standardized identifier and survival columns are not included in the clinica
 
 The expected clinical format is based on the TCGA clinical data used in the analyses accompanying this project. TCGA clinical data can be downloaded in R using `TCGAbiolinks`:
 
+```r
 library(TCGAbiolinks)
 
 clinical <- GDCquery_clinic(
   project = "TCGA-CHOL",
-  type = "clinical"
-)
+  type = "clinical")
+```
 
 The resulting table contains patient identifiers and survival-related variables including `submitter_id`, `vital_status`, `days_to_death`, and `days_to_last_follow_up`.
 
 These can be converted to the format expected by the pipeline as follows:
 
+```r
 clinical$sample_id <- clinical$submitter_id
 
 clinical$survival_time <- ifelse(
   !is.na(clinical$days_to_death),
   clinical$days_to_death,
-  clinical$days_to_last_follow_up
-)
+  clinical$days_to_last_follow_up)
 
 clinical$survival_event <- ifelse(
   is.na(clinical$vital_status),
   NA_integer_,
-  ifelse(clinical$vital_status == "Dead", 1L, 0L)
-)
+  ifelse(clinical$vital_status == "Dead", 1L, 0L))
+```
 
 The remaining clinical variables can be kept in the same table so that they are available for association testing:
 
+```r
 clinical <- clinical[
   ,
   c(
@@ -205,18 +215,20 @@ clinical <- clinical[
     "survival_event",
     setdiff(
       colnames(clinical),
-      c("sample_id", "survival_time", "survival_event")
-    )
-  )
-]
+      c("sample_id", "survival_time", "survival_event")))]
+```
 
+The standardized clinical table can then be saved as a tab-separated file:
+
+```r
 write.table(
   clinical,
   file = "TCGA_CHOL_clinical.tsv",
   sep = "\t",
   row.names = FALSE,
-  quote = FALSE
-)
+  quote = FALSE)
+```
+
 
 Clinical data from non-TCGA cohorts can be used in the same workflow as long as they are converted to the same standardized format before running the analysis.
 
@@ -245,7 +257,9 @@ Typical outputs include:
 
 The example configurations use:
 
+```r
 seed = 12345
+```
 
 The configured seed is used by the clustering workflow.
 
@@ -253,7 +267,9 @@ The seed, number of cores, and selected best-performing feature-selection and cl
 
 Package versions are recorded in `renv.lock`. The software environment can be restored with:
 
+```r
 renv::restore()
+```
 
 Intermediate results are managed by `targets` in the `_targets/` directory. This directory is a local cache and does not need to be included in the public repository.
 
@@ -267,8 +283,10 @@ If `results/` has been deleted, renamed, or the output path has been changed, do
 
 In this case, invalidate the cancer-level clustering targets and rerun the pipeline:
 
+```r
 targets::tar_invalidate(cancer_summary)
 targets::tar_make()
+```
 
 ## Citation
 
