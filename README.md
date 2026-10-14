@@ -4,7 +4,7 @@ BOAR is a reproducible R analysis pipeline developed to implement the clustering
 
 The pipeline compares combinations of feature-selection and clustering methods across gene expression and GRN-derived representations and performs downstream analyses including cluster comparison, clinical associations, and survival analysis.
 
-BOAR is provided primarily to support reproducibility of the analyses presented in the associated manuscript and to facilitate application of the same workflow to appropriately formatted datasets.
+BOAR is provided to support reproducibility of the analyses presented in the associated manuscript and to facilitate application of the same workflow to appropriately formatted datasets.
 
 The workflow is implemented with the `targets` package and uses the `cola` package for consensus clustering.
 
@@ -55,35 +55,89 @@ The main R packages used by the workflow are:
 
 ## Example analysis
 
-The manuscript analysis was performed across 33 TCGA cancer types using gene expression, gene indegree, and TF–gene edge-weight representations.
+This repository includes smaller example gene expression and gene indegree datasets for ACC and CHOL to demonstrate the BOAR workflow.
 
-Because the complete datasets are large, this repository includes smaller example gene expression and gene indegree datasets for ACC and CHOL to demonstrate the BOAR workflow.
+The example is configured in `examples/config_tcga.r`.
 
-The TCGA example is configured in `examples/config_tcga.r` and analyzes ACC and CHOL using gene expression and gene indegree representations.
-
-All files required to run the example are provided under:
-
-```text
-examples/data/
-├── expression/
-│   ├── tcga_ACC_expression.tsv
-│   └── tcga_CHOL_expression.tsv
-├── indegrees/
-│   ├── indegree_ACC.RData
-│   └── indegree_CHOL.RData
-└── clinical/
-    ├── TCGA_ACC_clinical.tsv
-    ├── TCGA_CHOL_clinical.tsv
-    └── exclude_cols.txt
-```
-
-To run the example pipeline from the project root:
+To run the pipeline from the project root:
 
 ```r
 targets::tar_make()
 ```
 
 The results are written to the output directory defined in `examples/config_tcga.r`.
+
+## Data availability
+
+The manuscript analysis was performed using TCGA gene expression data and patient-specific gene regulatory networks across 33 cancer types.
+
+The underlying TCGA gene expression and clinical data are publicly available through the National Cancer Institute Genomic Data Commons (GDC).
+
+Patient-specific gene regulatory networks were generated from the processed expression data using PANDA and LIONESS, as described in the associated manuscript. BOAR does not perform network inference itself; it takes prepared expression, gene indegree, and/or TF–gene edge-weight matrices as input.
+
+The complete expression, indegree, and edge-weight matrices used for the manuscript are not included in this repository because of their size. In particular, the edge-weight representation contains more than 12 million regulatory features per sample and is therefore not suitable for distribution through a standard Git repository.
+
+Smaller example datasets are provided in `examples/data/` to demonstrate the workflow.
+
+Details on the generation and preprocessing of the manuscript datasets are provided in the associated manuscript.
+
+## Computational requirements
+
+The computational requirements of BOAR depend strongly on the size of the input dataset and the selected patient representation.
+
+The example included in this repository is intended to demonstrate the workflow on a standard local computer. Full-scale analyses can be substantially more computationally demanding, particularly when using TF–gene edge-weight matrices. In the manuscript dataset, gene expression and indegree representations contained 19,034 features, whereas the edge-weight representation contained 12,771,814 features per sample.
+
+The manuscript analyses were therefore performed on high-performance computing infrastructure. Large edge-weight analyses were run on the CSC Puhti high-memory `hugemem` partition, using nodes with up to 1496 GB RAM and 40 CPU cores. Gene expression and indegree analyses were also run on CSC Mahti with 200 GB of allocated memory and four CPU cores per job.
+
+These values describe the computational environment used for the manuscript analyses rather than minimum requirements for BOAR. Smaller datasets and reduced analyses can require substantially fewer resources.
+
+The effect of data representation and feature-selection method on computation time and memory usage is shown in **Figure 2B of the associated manuscript**.
+
+## Repository structure
+
+The main files and directories in BOAR are organized as follows:
+
+```text
+BOAR/
+├── R/
+│   ├── analysis_steps.r
+│   ├── clinical_associations.r
+│   ├── clinical_utils.r
+│   ├── cluster_assignments.r
+│   ├── dataset_loaders.r
+│   ├── plot_clustering_metrics.r
+│   ├── plot_k.r
+│   ├── read_inputs.r
+│   ├── run_clustering.r
+│   ├── summarize_results.r
+│   └── survival_analysis.r
+├── examples/
+│   ├── config_tcga.r
+│   └── data/
+│       ├── expression/
+│       │   ├── tcga_ACC_expression.tsv
+│       │   └── tcga_CHOL_expression.tsv
+│       ├── indegrees/
+│       │   ├── indegree_ACC.RData
+│       │   └── indegree_CHOL.RData
+│       └── clinical/
+│           ├── TCGA_ACC_clinical.tsv
+│           ├── TCGA_CHOL_clinical.tsv
+│           └── exclude_cols.txt
+├── report/
+│   └── analysis_report.Rmd
+├── _targets.R
+├── renv.lock
+├── .Rprofile
+├── README.md
+└── LICENSE
+```
+
+The `R/` directory contains the functions used for clustering and downstream analyses, `examples/` contains the example configuration and input data, and `report/` contains the template used to generate the analysis report.
+
+`_targets.R` defines the analysis workflow, while `renv.lock` records the R package versions required to reproduce the software environment.
+
+Running the pipeline creates the configured `results/` directory containing clustering outputs, summary tables, figures, clinical and survival analyses, and the generated analysis report. The local `_targets/` directory is used by the `targets` package to store the workflow cache and is not included in the repository.
 
 ## Input data
 
@@ -147,8 +201,6 @@ Categorical variables are tested using chi-squared tests when the required sampl
 Numerical variables are tested using either ANOVA or Kruskal-Wallis tests depending on residual normality.
 
 Survival differences between clusters are evaluated using a log-rank test and can be visualized using Kaplan-Meier curves.
-
-Clinical data are deliberately kept separate from the core clustering functions so that the same workflow can be applied to different cohorts.
 
 Each clinical file must contain at least the following three columns:
 
@@ -229,7 +281,6 @@ write.table(
   quote = FALSE)
 ```
 
-
 Clinical data from non-TCGA cohorts can be used in the same workflow as long as they are converted to the same standardized format before running the analysis.
 
 ## Output
@@ -265,11 +316,7 @@ The configured seed is used by the clustering workflow.
 
 The seed, number of cores, and selected best-performing feature-selection and clustering combination are saved with the analysis results.
 
-Package versions are recorded in `renv.lock`. The software environment can be restored with:
-
-```r
-renv::restore()
-```
+Package versions required by the workflow are recorded in `renv.lock`.
 
 Intermediate results are managed by `targets` in the `_targets/` directory. This directory is a local cache and does not need to be included in the public repository.
 
