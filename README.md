@@ -1,8 +1,10 @@
 # BOAR: Benchmarking Of Approaches for Regulatory-Network Clustering
 
-BOAR is a reproducible R pipeline for clustering cancer patients using gene expression and patient-specific gene regulatory network representations.
+BOAR is a reproducible R analysis pipeline developed to implement the clustering benchmark described in our study of patient-specific gene regulatory networks.
 
-The pipeline was developed as part of a benchmarking study comparing different approaches for patient stratification using gene expression, gene indegrees, and transcription factor–gene edge weights.
+The pipeline compares combinations of feature-selection and clustering methods across gene expression and GRN-derived representations and performs downstream analyses including cluster comparison, clinical associations, and survival analysis.
+
+BOAR is provided primarily to support reproducibility of the analyses presented in the associated manuscript and to facilitate application of the same workflow to appropriately formatted datasets.
 
 The workflow is implemented with the `targets` package and uses the `cola` package for consensus clustering.
 
@@ -47,19 +49,18 @@ The main R packages used by the workflow are:
 * mclust
 * survival
 
-## Running the pipeline
+## Example analysis
 
-The repository contains a TCGA-specific configuration file under `examples/`.
+The manuscript analysis was performed across 33 TCGA cancer types using gene expression, gene indegree, and TF–gene edge-weight representations.
 
-The TCGA example is currently configured to analyze ACC and CHOL using two patient representations: gene expression and gene indegrees.
+Because the complete datasets are large, this repository includes smaller example gene expression and gene indegree datasets for ACC and CHOL to demonstrate the BOAR workflow.
 
-All files required to run this example are provided under:
+The TCGA example is configured in `examples/config_tcga.r` and analyzes ACC and CHOL using gene expression and gene indegree representations.
 
-examples/data/tcga/
+All files required to run the example are provided under:
 
-The example data are organized as:
-
-examples/data/tcga/
+```text
+examples/data/
 ├── expression/
 │   ├── tcga_ACC_expression.tsv
 │   └── tcga_CHOL_expression.tsv
@@ -69,13 +70,16 @@ examples/data/tcga/
 └── clinical/
     ├── TCGA_ACC_clinical.tsv
     ├── TCGA_CHOL_clinical.tsv
-    └── TCGA_clinical_exclude_cols.txt
+    └── exclude_cols.txt
+```
 
 To run the example pipeline from the project root:
 
+```r
 targets::tar_make()
+```
 
-The results are written to the output directory defined in `config_tcga.R`.
+The results are written to the output directory defined in `examples/config_tcga.r`.
 
 ## Input data
 
