@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/1404329621.svg)](https://doi.org/10.5281/zenodo.23501563)
+
 # BOAR: Benchmarking Of Approaches for Regulatory-Network Clustering
 
 BOAR is a reproducible R analysis pipeline developed to implement the clustering benchmark described in our study of patient-specific gene regulatory networks.
